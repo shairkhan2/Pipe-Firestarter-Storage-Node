@@ -6,7 +6,7 @@ from datetime import datetime
 import subprocess
 from pathlib import Path
 
-from flask import Flask, render_template, request, redirect, url_for, flash, Response, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, flash, Response, send_from_directory, send_file, after_this_request
 
 
 app = Flask(__name__)
@@ -271,24 +271,46 @@ def referrals():
 
 @app.post("/download")
 def download():
-    remote = (request.form.get("remote_name") or "").strip()
+    # Prefer manual name if provided, else use the selection
+    remote_manual = (request.form.get("remote_name_manual") or "").strip()
+    remote_select = (request.form.get("remote_name_select") or "").strip()
+    remote = remote_manual or remote_select
     local = (request.form.get("local_name") or "").strip()
     legacy = request.form.get("legacy") == "on"
-    if not remote or not local:
-        flash("Provide both remote file name and local file name.", "error")
+
+    if not remote:
+        flash("Select or enter a remote file name.", "error")
         return redirect(url_for("index"))
+    if not local:
+        # Auto-derive a reasonable filename for the client
+        local = remote if "." in remote else f"{remote}.bin"
+
     downloads = ensure_downloads_dir()
     target = downloads / local
     cmd = ["pipe", "download-file", remote, str(target)]
     if legacy:
         cmd.append("--legacy")
     code, out, err = run_command(cmd, timeout=10800)
-    if code == 0:
-        link = url_for("serve_download", filename=local)
-        flash(f"Downloaded to {target}.\nClick to fetch: {request.host_url.rstrip('/')}{link}\n\n{out}", "success")
-    else:
+    if code != 0:
         flash(err or out or "Download failed.", "error")
-    return redirect(url_for("index"))
+        return redirect(url_for("index"))
+
+    @after_this_request
+    def _cleanup(response):
+        try:
+            target.unlink(missing_ok=True)  # type: ignore[arg-type]
+        except Exception:
+            pass
+        return response
+
+    # Immediately return the file to the user's browser as a download
+    return send_file(
+        str(target),
+        as_attachment=True,
+        download_name=local,
+        mimetype="application/octet-stream",
+        max_age=0,
+    )
 
 
 @app.get("/files/downloads/<path:filename>")
@@ -417,6 +439,8 @@ def _enforce_basic_auth():
     if not auth or auth.username != user or auth.password != pwd:
         return _auth_required_response()
     return None
+
+
 
 
 
