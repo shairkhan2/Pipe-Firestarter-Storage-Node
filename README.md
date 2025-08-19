@@ -61,8 +61,8 @@ Note: If the installer reports that `pipe` isn’t on your PATH, open a new shel
 
 ## Using the Management Site
 
-Open http://YOUR_VPS_IP:3001 and use the cards on the page:
-
+vps Open http://YOUR_VPS_IP:3001 and use the cards on the page:
+own pc open `http://localhost:3001` and use the cards on the page
 ### Swap SOL → PIPE
 - Enter the amount and click Swap.
 - Need Devnet SOL? Use the official Solana Faucet: [Solana Faucet](https://faucet.solana.com/).
@@ -126,6 +126,7 @@ cargo install --path .
 ---
 
 Operated by you on your own VPS. Devnet SOL can be requested via the official Solana Foundation faucet: [Solana Devnet Faucet](https://faucet.solana.com/).
+
 
 
 
