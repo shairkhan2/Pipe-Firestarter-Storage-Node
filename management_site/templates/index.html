@@ -212,7 +212,7 @@
           <h2>Download (streamable)</h2>
           <form method="post" action="/download">
             <label>Choose from previous uploads</label>
-            <select name="remote_name">
+            <select name="remote_name_select">
               {% if uploads and uploads|length > 0 %}
                 {% for u in uploads %}
                   <option value="{{ u }}">{{ u }}</option>
@@ -222,7 +222,7 @@
               {% endif %}
             </select>
             <div class="hint">Or type manually:</div>
-            <input type="text" name="remote_name" placeholder="my-photo" />
+            <input type="text" name="remote_name_manual" placeholder="my-photo" />
             <label>Save locally as</label>
             <input type="text" name="local_name" placeholder="downloaded-photo.jpg" />
             <div class="row" style="align-items:center">
